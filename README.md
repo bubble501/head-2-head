@@ -1,3 +1,2 @@
-# head-2-head
+# Head 2 Head
 
-# What is Head 2 Head
