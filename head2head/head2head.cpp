@@ -215,7 +215,6 @@ class head2head : public eosio::contract {
             print( "This is the collect winnings handler", name );
         }
 
-
         // toggles whether contract is accepting new bets
         /// @abi action
         void tacceptbets() {}
