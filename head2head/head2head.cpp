@@ -209,24 +209,6 @@ class head2head : public eosio::contract {
         }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         // TODO
         /// @abi action
         void collectwin( std::string name ) {
