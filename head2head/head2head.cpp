@@ -33,7 +33,6 @@ class head2head : public eosio::contract {
             require_auth( _self );
 
             _games.emplace( _self, [&]( auto& g ) {
-
                 g.id = _games.available_primary_key();
                 g.team1 = team1;
                 g.team2 = team2;
@@ -41,12 +40,10 @@ class head2head : public eosio::contract {
                 g.team1_score = 0;
                 g.team2_score = 0;
                 g.game_time = eosio::time_point_sec(time_in_seconds);
-
             });
 
             auto itr = _games.crbegin();
             print("Game was successfully saved", "\n", "Game Id:  ", itr->id, "\n");
-
         }
 
 
@@ -62,7 +59,6 @@ class head2head : public eosio::contract {
             eosio_assert(iter != _games.end(), "Game not found");
 
             _games.erase(iter);
-
         }
 
 
@@ -82,7 +78,6 @@ class head2head : public eosio::contract {
 
             auto game = _games.get(id);
             print( "Score Updated for ", game.team1, " vs ", game.team2 );
-
         }
 
 
@@ -211,7 +206,6 @@ class head2head : public eosio::contract {
                     b.taker_winner = game_iter->team1;
                 });
             }
-
         }
 
 
