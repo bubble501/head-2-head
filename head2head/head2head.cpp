@@ -24,6 +24,7 @@ class head2head : public eosio::contract {
         _bets(_self, _self)
         {}
 
+        // 24 hours in seconds
         const uint32_t TWENTY_FOUR_HOURS = 86400;
 
         /// @abi action
@@ -93,8 +94,8 @@ class head2head : public eosio::contract {
 
             // check submitted asset
             eosio_assert( bet.symbol.is_valid(), "Currency symbol is invalid." );
-            eosio_assert( bet.is_valid(), "invalid quantity" );
-            eosio_assert( bet.amount > 0, "must deposit positive quantity" );
+            eosio_assert( bet.is_valid(), "Invalid quantity." );
+            eosio_assert( bet.amount > 0, "Must deposit positive quantity." );
 
             auto iter = _games.find(game_id);
 
@@ -108,8 +109,7 @@ class head2head : public eosio::contract {
             eosio_assert((iter->team1 == winner || iter->team2 == winner) , "Winner does not match any team in the selected game.");
 
             // create bet with with bet amount held out
-            // TODO change payor
-            auto new_bet_itr = _bets.emplace(_self, [&](auto& b){
+            auto new_bet_itr = _bets.emplace(maker, [&](auto& b){
                 b.id        =           _bets.available_primary_key();
                 b.maker     =           maker;
                 b.game_id   =           game_id;
@@ -124,12 +124,12 @@ class head2head : public eosio::contract {
                     std::make_tuple(maker, _self, bet, std::string(""))
             ).send();
 
-            // TODO change payor
-            _bets.modify( new_bet_itr, _self, [&]( auto& b ) {
+            // once transfer has successfully gone through update bet amount
+            _bets.modify( new_bet_itr, maker, [&]( auto& b ) {
                 b.amount = bet;
             });
 
-            print("Game was successfully saved! ", "Bet Id: ", new_bet_itr->id, " Bet amount: ", new_bet_itr->amount);
+            print("Game was successfully saved! ", "Bet Id: ", new_bet_itr->id, " Bet amount: ", new_bet_itr->amount, ". You picked ", winner, " in ", iter->team1, " vs ", iter->team2, "!");
         }
 
         // TODO
@@ -148,7 +148,6 @@ class head2head : public eosio::contract {
             // TODO SEND MONEY BACK TO MAKER AND OR TAKER ACCOUNT
 
             _bets.erase(iter);
-
         }
 
 
@@ -164,55 +163,120 @@ class head2head : public eosio::contract {
 
             // check submitted asset
             eosio_assert( bet.symbol.is_valid(), "Currency symbol is invalid." );
-            eosio_assert( bet.is_valid(), "invalid quantity" );
-            eosio_assert( bet.amount > 0, "must deposit positive quantity" );
+            eosio_assert( bet.is_valid(), "Invalid bet" );
+            eosio_assert( bet.amount > 0, "Must deposit positive quantity" );
 
             // find game
             auto game_iter = _games.find(game_id);
 
             // assert whether game exists
-            eosio_assert(game_iter != _games.end(), "Game not found.");
+            eosio_assert(game_iter != _games.end(), "Game not found." );
 
             // assert that current time is not greater than game_time
-            eosio_assert( eosio::time_point_sec(now()) < game_iter->game_time, "Game has already started unable to take bets.");
-
-            print("Team 1: ", game_iter->team1, "; ", "Team 2: ", game_iter->team2);
+            eosio_assert( eosio::time_point_sec(now()) < game_iter->game_time, "Game has already started unable to take bets." );
 
             // find game
             auto bet_iter = _bets.find(bet_id);
 
             // assert whether bet exists
-            eosio_assert(bet_iter != _bets.end(), "Game not found.");
+            eosio_assert(bet_iter != _bets.end(), "Game not found." );
 
-            // assert that maker does not equal taker
-            // cannot bet against own account
-            eosio_assert( taker != bet_iter->maker , "Bet taker cannot be the same as the maker of the bet");
+            // asset that game.id equal bet.game_id
+            eosio_assert( game_iter->id == bet_iter->game_id , "The game id and the chosen bet's game id do not match." );
 
+            // assert that maker does not equal taker; cannot bet against own account
+            eosio_assert( taker != bet_iter->maker , "Bet taker cannot be the same as the maker of the bet." );
 
-            // add check that taker field is empty
-            eosio_assert( is_account( bet_iter->taker ) , "Someone has already taken this bet.");
+            // add check that bet.taker does not have an account already
+            eosio_assert( !is_account( bet_iter->taker ) , "Someone has already taken this bet." );
 
+            // Ensure taker bet amount equals maker bet amount
+            eosio_assert( bet_iter->amount == bet, "Taker bet must match the Maker bet." );
 
+            // transfer eos from taker to head2head token pool
+            action(
+                    permission_level{ taker, N(active) },
+                    N(eosio.token), N(transfer),
+                    std::make_tuple(taker, _self, bet, std::string(""))
+            ).send();
+
+            std::string picked_team;
             if(bet_iter->maker_winner == game_iter->team1) {
-                // TODO change payor
-                _bets.modify( bet_iter, _self, [&]( auto& b ) {
+
+                _bets.modify( bet_iter, taker, [&]( auto& b ) {
                     b.taker = taker;
                     b.taker_winner = game_iter->team2;
                 });
+
+                picked_team = game_iter->team2;
+
             } else {
-                // TODO change payor
-                _bets.modify( bet_iter, _self, [&]( auto& b ) {
+
+                _bets.modify( bet_iter, taker, [&]( auto& b ) {
                     b.taker = taker;
                     b.taker_winner = game_iter->team1;
                 });
-            }
-        }
 
+                picked_team = game_iter->team1;
+            }
+
+            print( "You bet ", bet, " on ", game_iter->team1, " v ", game_iter->team2, ". You picked ", picked_team, " to win!" );
+        }
 
         // TODO
         /// @abi action
-        void collectwin( std::string name ) {
-            print( "This is the collect winnings handler", name );
+        void collectwin( const uint64_t game_id, const uint64_t bet_id, const account_name bettor) {
+
+            // assert that maker is a real account
+            eosio_assert( is_account( bettor ), "Bettor account does not exist.");
+
+            // assert that maker has the required authority to make bet
+            require_auth( bettor );
+
+            // find game
+            auto game_iter = _games.find(game_id);
+
+            // assert whether game exists
+            eosio_assert(game_iter != _games.end(), "Game not found." );
+
+            // TODO
+            // test this lie thoroughly
+            // assert that current time is not greater than game_time
+            eosio_assert( eosio::time_point_sec(now()) > (game_iter->game_time + TWENTY_FOUR_HOURS), "You must wait 24 hours after game has ended to collect winnings for a bet." );
+
+            // find game
+            auto bet_iter = _bets.find(bet_id);
+
+            std::string winning_team="";
+            // check if team1 score is winner
+            if(game_iter->team1_score > game_iter->team2score) {
+                winning_team = game_iter->team1;
+            }
+            // check if team2 score is winner
+            else if(game_iter->team2score > game_iter->team1_score) {
+                winning_team = game_iter->team2;
+            }
+            else{
+                winning_team = "no winner";
+            }
+
+            // TODO check who won bet
+            account_name bet_winner;
+            if(bet_iter->maker_winner == winning_team) {
+                // send money to maker
+                // send 2-5% to oracle
+            }
+            else if (bet_iter->taker_winner == winning_team) {
+                // send money to taker
+                // send 2-5% to oracle
+            }
+            // in case of tie
+            else{
+                // send money back to both people
+            }
+
+            // TODO
+            // add something for when noone takes bet the person can collect within 5 min of start of game
         }
 
         // toggles whether contract is accepting new bets
