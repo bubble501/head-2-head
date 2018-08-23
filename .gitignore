@@ -39,3 +39,7 @@ typings
 Thumbs.db
 
 scripts
+
+// web assembly files
+.wasm
+.wast
