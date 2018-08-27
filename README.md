@@ -16,5 +16,5 @@ the smart contact will automatically decide where to send the EOS based on the w
 ## Current Status
 Head 2 Head is about 60% complete. For more information please contact me.
 
-![alt text](./head2head-screen-shot.png)
+![alt text](./screen-shot.png)
 
