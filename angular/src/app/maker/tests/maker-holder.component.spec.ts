@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { WagerItemComponent } from './wager-item.component';
+import { MakerHolderComponent } from './maker-holder.component';
 
-describe('WagerItemComponent', () => {
-  let component: WagerItemComponent;
-  let fixture: ComponentFixture<WagerItemComponent>;
+describe('MakerHolderComponent', () => {
+  let component: MakerHolderComponent;
+  let fixture: ComponentFixture<MakerHolderComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ WagerItemComponent ]
+      declarations: [ MakerHolderComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(WagerItemComponent);
+    fixture = TestBed.createComponent(MakerHolderComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

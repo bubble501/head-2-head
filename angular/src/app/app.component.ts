@@ -2,9 +2,8 @@ import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  templateUrl: './core/templates/app.component.html'
 })
 export class AppComponent {
-  title = 'Head 2 Head on the EOS network';
+  public title = 'Head 2 Head on the EOS network';
 }

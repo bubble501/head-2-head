@@ -9,7 +9,6 @@ export class TakerHolderComponent implements OnInit {
 
   constructor() { }
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
 }

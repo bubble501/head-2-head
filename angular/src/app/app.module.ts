@@ -1,25 +1,21 @@
 import {BrowserModule} from '@angular/platform-browser';
 import {NgModule} from '@angular/core';
 import {AppComponent} from './app.component';
-import {GamesModule} from './games/games.module';
 import {TakerModule} from './taker/taker.module';
-import {WagersModule} from './wagers/wagers.module';
-import { AppRoutingModule } from './/app-routing.module';
-import { TestComponent } from './test/test.component';
+import { AppRoutingModule } from './app-routing.module';
+import {MakerModule} from "./maker/maker.module";
+
 
 @NgModule({
   declarations: [
-    AppComponent,
-    TestComponent
+    AppComponent
   ],
   imports: [
     BrowserModule,
-      GamesModule,
-      TakerModule,
-      WagersModule,
-      AppRoutingModule
+    MakerModule,
+    TakerModule,
+    AppRoutingModule
   ],
-  providers: [],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

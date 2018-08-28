@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import {RouterModule, Routes} from '@angular/router';
 import {TakerHolderComponent} from './components/taker-holder.component';
 
+
 const takerRoutes: Routes = [
   { path: 'take-bets',  component: TakerHolderComponent }
 ];
