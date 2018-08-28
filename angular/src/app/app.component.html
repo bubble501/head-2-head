@@ -6,24 +6,9 @@
   <h1>
     {{ title }}!
   </h1>
-  <div>
-    <div class="w-container">
-      <div class="w-row">
-        <div class="w-col w-col-4">
-          <app-wager></app-wager>
-        </div>
-        <div class="w-col w-col-4">
-          <div class="div-block">
-            <h1>Heading</h1>
-          </div>
-        </div>
-        <div class="w-col w-col-4">
-          <div class="div-block">
-            <h1>Heading</h1>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 
+  <a routerLink="make-bets">Make Bets</a><br>
+  <a routerLink="take-bets">Take Bets</a><br>
+  <a routerLink="collect">Collect</a>
+  <router-outlet></router-outlet>
 </div>
