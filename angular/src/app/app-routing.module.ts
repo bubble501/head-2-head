@@ -13,6 +13,10 @@ const routes: Routes =
       loadChildren: './maker/maker.module#MakerModule'
     },
     {
+      path: 'collect',
+      loadChildren: './collect/collect.module#CollectModule'
+    },
+    {
       path: '',
       redirectTo: 'make-bets',
       pathMatch: 'full'
